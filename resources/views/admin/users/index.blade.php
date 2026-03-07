@@ -61,18 +61,14 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     @if($umkm->status == 'pending')
-                                        <div class="flex justify-end space-x-2">
-                                            <form action="{{ route('admin.umkm.approve', $umkm->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 transition shadow-sm">Approve</button>
-                                            </form>
-                                            <form action="{{ route('admin.umkm.reject', $umkm->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" onclick="return confirm('Reject this UMKM?')" class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition shadow-sm">Reject</button>
-                                            </form>
-                                        </div>
+                                        <a href="{{ route('admin.umkm.show', $umkm->id) }}" class="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-orange-700 transition shadow-lg shadow-orange-100">
+                                            Review Application <i class="fas fa-arrow-right ml-2"></i>
+                                        </a>
                                     @else
-                                        <span class="text-gray-400 text-xs italic">Verified on {{ $umkm->updated_at->format('d/m/y') }}</span>
+                                        <div class="flex flex-col items-end">
+                                            <a href="{{ route('admin.umkm.show', $umkm->id) }}" class="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">Detail View</a>
+                                            <span class="text-[9px] text-gray-400 italic">Verified {{ $umkm->updated_at->format('d/m/y') }}</span>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>

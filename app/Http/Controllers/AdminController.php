@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Umkm;
 use App\Models\AuditTrail;
-use App\Mail\UMKMApproved;
 use Illuminate\Support\Facades\Mail;
+use App\Notifications\UMKMStatusChanged;
+use App\Notifications\ProductStatusChanged;
 
 class AdminController extends Controller
 {
@@ -60,6 +61,30 @@ class AdminController extends Controller
         return view('admin.users.index', compact('allUmkms', 'allUsers'));
     }
 
+    public function showUmkm($id)
+    {
+        $umkm = Umkm::with(['user', 'category', 'verificationDocuments', 'reviews.user'])->findOrFail($id);
+        $auditTrails = AuditTrail::where('auditable_type', Umkm::class)
+            ->where('auditable_id', $umkm->id)
+            ->latest()
+            ->get();
+            
+        return view('admin.umkms.show', compact('umkm', 'auditTrails'));
+    }
+
+    public function showProduct($type, $id)
+    {
+        $model = $this->getModelByType($type);
+        $product = $model::with(['umkm.category', 'umkm.user'])->findOrFail($id);
+        
+        $auditTrails = AuditTrail::where('auditable_type', get_class($product))
+            ->where('auditable_id', $product->id)
+            ->latest()
+            ->get();
+
+        return view('admin.products.show', compact('product', 'type', 'auditTrails'));
+    }
+
     public function approveUmkm($id)
     {
         $umkm = Umkm::findOrFail($id);
@@ -82,21 +107,30 @@ class AdminController extends Controller
             'notes' => 'UMKM ' . $umkm->business_name . ' disetujui. Role user diupgrade ke Pengusaha (umkm).',
         ]);
 
+        // Notify User
+        $umkm->user->notify(new UMKMStatusChanged($umkm, 'approved'));
+
         return redirect()->back()->with('success', 'UMKM ' . $umkm->business_name . ' telah disetujui dan user resmi menjadi Pengusaha.');
     }
 
-    public function rejectUmkm($id)
+    public function rejectUmkm(Request $request, $id)
     {
         $umkm = Umkm::findOrFail($id);
-        $umkm->update(['status' => 'rejected']);
+        $umkm->update([
+            'status' => 'rejected',
+            'admin_note' => $request->rejected_reason
+        ]);
 
         AuditTrail::create([
             'user_id' => auth()->id(),
             'action' => 'Rejected UMKM',
             'auditable_type' => Umkm::class,
             'auditable_id' => $umkm->id,
-            'notes' => 'UMKM ' . $umkm->business_name . ' ditolak.',
+            'notes' => 'UMKM ' . $umkm->business_name . ' ditolak: ' . $request->rejected_reason,
         ]);
+
+        // Notify User
+        $umkm->user->notify(new UMKMStatusChanged($umkm, 'rejected', $request->rejected_reason));
 
         return redirect()->back()->with('success', 'UMKM ' . $umkm->business_name . ' telah ditolak.');
     }
@@ -114,6 +148,9 @@ class AdminController extends Controller
             'auditable_id' => $product->id,
             'notes' => 'Produk ' . $product->name . ' (' . $type . ') disetujui.',
         ]);
+
+        // Notify User
+        $product->umkm->user->notify(new ProductStatusChanged($product, 'approved'));
 
         return redirect()->back()->with('success', 'Produk ' . $product->name . ' telah disetujui.');
     }
@@ -134,6 +171,9 @@ class AdminController extends Controller
             'auditable_id' => $product->id,
             'notes' => 'Produk ' . $product->name . ' (' . $type . ') ditolak: ' . $request->rejected_reason,
         ]);
+
+        // Notify User
+        $product->umkm->user->notify(new ProductStatusChanged($product, 'rejected', $request->rejected_reason));
 
         return redirect()->back()->with('success', 'Produk ' . $product->name . ' telah ditolak.');
     }

@@ -77,7 +77,12 @@
                                             <span class="text-[9px] text-gray-400 mt-1 italic tracking-tight">Menunggu Admin</span>
                                         </div>
                                     @else
-                                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border border-red-200">Ditolak</span>
+                                        <div class="flex flex-col">
+                                            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border border-red-200 w-max">Ditolak</span>
+                                            @if($product->rejected_reason)
+                                                <span class="text-[9px] text-red-400 mt-1 italic tracking-tight font-medium max-w-[120px]">"{{ $product->rejected_reason }}"</span>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">

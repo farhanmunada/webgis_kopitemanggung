@@ -5,7 +5,15 @@
             <x-application-logo class="block h-9 w-auto fill-current text-coffee-800" />
             <div class="ml-3">
                 <span class="font-bold text-gray-800 leading-none block">Kopi Temanggung</span>
-                <span class="text-xs text-gray-500">{{ auth()->user()->role == 'admin' ? 'Admin Portal' : 'Entrepreneur Dashboard' }}</span>
+                <span class="text-xs text-gray-500">
+                    @if(auth()->user()->role == 'admin')
+                        Admin Portal
+                    @elseif(auth()->user()->role == 'umkm')
+                        Entrepreneur Dashboard
+                    @else
+                        Status: Pending Approval
+                    @endif
+                </span>
             </div>
         </div>
 
@@ -29,10 +37,34 @@
                     <i class="fas fa-chart-line w-5 h-5 mr-3"></i>
                     Dashboard Statistik
                 </a>
+
+                @if(auth()->user()->role === 'umkm')
                 <a href="{{ route('entrepreneur.product.index') }}" class="flex items-center px-4 py-3 {{ request()->routeIs('entrepreneur.product.*') ? 'bg-orange-100 text-primary' : 'text-gray-600 hover:bg-gray-50' }} font-medium rounded-lg transition">
                     <i class="fas fa-box w-5 h-5 mr-3"></i>
                     Kelola Produk
                 </a>
+                @endif
+
+                <a href="{{ route('entrepreneur.profile.settings') }}" class="flex items-center px-4 py-3 {{ request()->routeIs('entrepreneur.profile.*') ? 'bg-orange-100 text-primary' : 'text-gray-600 hover:bg-gray-50' }} font-medium rounded-lg transition">
+                    <i class="fas fa-store w-5 h-5 mr-3"></i>
+                    Profil Toko
+                </a>
+
+                <div class="pt-4 mt-4 border-t border-gray-50">
+                    <p class="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pusat Informasi</p>
+                    <a href="{{ route('entrepreneur.notifications') }}" class="flex items-center px-4 py-3 {{ request()->routeIs('entrepreneur.notifications') ? 'bg-orange-100 text-primary' : 'text-gray-600 hover:bg-gray-50' }} font-medium rounded-lg transition group">
+                        <div class="relative">
+                            <i class="fas fa-bell w-5 h-5 mr-3"></i>
+                            @php $unreadCount = auth()->user()->unreadNotifications->count(); @endphp
+                            @if($unreadCount > 0)
+                                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white group-hover:scale-110 transition">
+                                    {{ $unreadCount }}
+                                </span>
+                            @endif
+                        </div>
+                        Notifikasi
+                    </a>
+                </div>
             @endif
         </div>
     </div>
@@ -71,7 +103,15 @@
             </div>
             <div class="ml-3 text-left flex-1 min-w-0">
                 <p class="text-sm font-black text-gray-900 truncate leading-none">{{ Auth::user()->name }}</p>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1 truncate">{{ Auth::user()->role == 'admin' ? 'Administrator' : 'Entrepreneur' }}</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1 truncate">
+                    @if(Auth::user()->role == 'admin')
+                        Administrator
+                    @elseif(Auth::user()->role == 'umkm')
+                        Entrepreneur
+                    @else
+                        Mitra (Pending)
+                    @endif
+                </p>
             </div>
             <i class="fas fa-ellipsis-v text-gray-300 text-xs ml-2 group-hover:text-gray-500 transition"></i>
         </button>

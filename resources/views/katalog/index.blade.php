@@ -118,51 +118,131 @@
             </div>
         </div>
 
-        <!-- Featured Products -->
-        <div id="katalog" class="mb-16">
-            <div class="flex justify-between items-baseline mb-6">
-                <h2 class="text-2xl font-bold flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i> Recommended Products
+        <!-- Search Results -->
+        @if($search)
+        <div id="searchResults" class="mb-16">
+            <div class="flex justify-between items-baseline mb-6 border-b border-amber-500/20 pb-4">
+                <h2 class="text-3xl font-black flex items-center text-gray-900">
+                    <i class="fas fa-search text-amber-600 mr-3"></i> Hasil Pencarian: <span class="ml-2 text-amber-600 italic">"{{ $search }}"</span>
                 </h2>
-                <a href="#" class="text-sm font-semibold text-primary hover:underline">Lihat Semua</a>
+                <span class="text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ $searchResults->count() }} Produk Ditemukan</span>
+            </div>
+
+            @if($searchResults->isEmpty())
+                <div class="py-20 bg-white rounded-[40px] border border-dashed border-gray-200 text-center flex flex-col items-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
+                        <i class="fas fa-search-minus text-3xl"></i>
+                    </div>
+                    <p class="text-gray-400 font-bold uppercase tracking-widest text-xs">Maaf, kami tidak dapat menemukan apapun untuk "{{ $search }}".</p>
+                    <a href="{{ route('katalog.index') }}" class="mt-4 text-amber-600 font-bold hover:underline">Lihat Semua Kopi</a>
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    @foreach($searchResults as $product)
+                        @include('katalog.partials.product_card', ['product' => $product])
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        @endif
+
+        <!-- Recommended Products -->
+        <div id="recommended" class="mb-20">
+            <div class="flex justify-between items-baseline mb-8">
+                <div>
+                    <h2 class="text-3xl font-black flex items-center text-gray-900 mb-2">
+                        <span class="w-2 h-8 bg-amber-500 rounded-full mr-4"></span> Recommended Products
+                    </h2>
+                    <p class="text-gray-500 font-medium ml-8">Paling banyak dilihat dan disukai penikmat kopi.</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                @forelse($products as $product)
-                <!-- Premium Card -->
-                <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:border-amber-100 transition duration-500 group">
-                    <a href="{{ route('product.show', ['type' => $product->type, 'slug' => $product->slug]) }}" class="block">
-                        <div class="relative h-60 bg-gray-100 overflow-hidden">
-                            <span class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest shadow-sm z-10 text-amber-700 border border-amber-100">{{ $product->type }}</span>
-                            <img src="{{ $product->photo ? asset('storage/'.$product->photo) : 'https://placehold.co/400x300?text=Kopi' }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                            <div class="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/60 to-transparent translate-y-full group-hover:translate-y-0 transition duration-500">
-                                <span class="text-white text-[10px] font-black uppercase tracking-widest">Detail Produk <i class="fas fa-arrow-right ml-2"></i></span>
-                            </div>
-                        </div>
-                    </a>
-                    <div class="p-7">
-                        <div class="mb-4">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{{ $product->umkm->business_name }}</p>
-                            <a href="{{ route('product.show', ['type' => $product->type, 'slug' => $product->slug]) }}" class="block">
-                                <h3 class="font-black text-gray-900 text-lg leading-tight hover:text-amber-600 transition h-12 line-clamp-2">{{ $product->name }}</h3>
-                            </a>
-                        </div>
-                        <div class="flex items-center justify-between mt-6 pt-6 border-t border-gray-50">
-                            <span class="text-xl font-black text-gray-900">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $product->umkm->latitude }},{{ $product->umkm->longitude }}" target="_blank" class="w-11 h-11 bg-gray-900 text-white rounded-2xl flex items-center justify-center hover:bg-amber-600 transition shadow-lg shadow-gray-200" title="Buka Rute di Google Maps">
-                                <i class="fas fa-map-marker-alt text-xs"></i>
-                            </a>
-                        </div>
+                @foreach($recommendedProducts as $product)
+                    @include('katalog.partials.product_card', ['product' => $product])
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Section: Coffeeshop (Beverages) -->
+        <div id="coffeeshop" class="mb-20">
+            <div class="bg-amber-50 rounded-[40px] p-10">
+                <div class="flex justify-between items-baseline mb-10">
+                    <div>
+                        <h2 class="text-3xl font-black flex items-center text-gray-900 mb-2 uppercase tracking-tight">
+                            <i class="fas fa-coffee mr-4 text-amber-800"></i> Coffeeshop Beverage
+                        </h2>
+                        <p class="text-gray-600 font-medium italic">Minuman kopi siap saji dari kedai-kedai terbaik Temanggung.</p>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    @forelse($coffeeshopProducts->take(8) as $product)
+                        @include('katalog.partials.product_card', ['product' => $product])
+                    @empty
+                        <div class="col-span-4 text-center py-10 text-gray-400 font-bold uppercase tracking-widest text-xs">Belum ada menu coffeeshop.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Roastery -->
+        <div id="roastery" class="mb-20">
+            <div class="flex justify-between items-baseline mb-8">
+                <div>
+                    <h2 class="text-3xl font-black flex items-center text-gray-900 mb-2 uppercase tracking-tight">
+                        <i class="fas fa-fire mr-4 text-orange-700"></i> Roastery Selections
+                    </h2>
+                    <p class="text-gray-500 font-medium">Biji kopi sangrai berkualitas tinggi dengan berbagai profil roasting.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @forelse($roasteryProducts->take(8) as $product)
+                    @include('katalog.partials.product_card', ['product' => $product])
                 @empty
-                <div class="col-span-4 py-20 bg-white rounded-[40px] border border-dashed border-gray-200 text-center flex flex-col items-center">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
-                        <i class="fas fa-box-open text-3xl"></i>
-                    </div>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-xs">Belum ada produk disetujui.</p>
-                </div>
+                    <div class="col-span-4 text-center py-10 text-gray-400 font-bold uppercase tracking-widest text-xs">Belum ada koleksi roastery.</div>
                 @endforelse
+            </div>
+        </div>
+
+        <!-- Section: Supplier (Beans) -->
+        <div id="supplier" class="mb-20">
+            <div class="bg-emerald-50 rounded-[40px] p-10">
+                <div class="flex justify-between items-baseline mb-10">
+                    <div>
+                        <h2 class="text-3xl font-black flex items-center text-gray-900 mb-2 uppercase tracking-tight">
+                            <i class="fas fa-store mr-4 text-emerald-800"></i> Toko Kopi (Bahan Olahan)
+                        </h2>
+                        <p class="text-gray-600 font-medium italic">Menyediakan berbagai bahan olahan kopi dan kebutuhan kedai.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    @forelse($supplierProducts->take(8) as $product)
+                        @include('katalog.partials.product_card', ['product' => $product])
+                    @empty
+                        <div class="col-span-4 text-center py-10 text-gray-400 font-bold uppercase tracking-widest text-xs">Belum ada stok bahan olahan.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Arrival -->
+        <div id="latest" class="mb-16">
+            <div class="flex justify-between items-baseline mb-8">
+                <div>
+                    <h2 class="text-3xl font-black flex items-center text-gray-900 mb-2">
+                        <i class="fas fa-clock mr-4 text-blue-600"></i> Latest Arrival
+                    </h2>
+                    <p class="text-gray-500 font-medium">Produk terbaru yang baru saja mendarat di katalog kami.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($latestProducts as $product)
+                    @include('katalog.partials.product_card', ['product' => $product])
+                @endforeach
             </div>
         </div>
 

@@ -6,21 +6,114 @@ use Illuminate\Http\Request;
 
 class KatalogController extends Controller
 {
-    public function index()
+    public function umkmIndex()
     {
-        // For landing page, fetch latest approved products from all 3 tables
-        $beverages = \App\Models\ProductBeverage::with(['umkm.category'])->where('status', 'approved')->latest()->take(4)->get();
-        $roasteries = \App\Models\ProductRoastery::with(['umkm.category'])->where('status', 'approved')->latest()->take(4)->get();
-        $beans = \App\Models\ProductBean::with(['umkm.category'])->where('status', 'approved')->latest()->take(4)->get();
+        // Best UMKM based on rating (min 1 review)
+        $bestUmkms = \App\Models\Umkm::with(['category', 'reviews'])
+            ->where('status', 'approved')
+            ->get()
+            ->sortByDesc('avg_rating')
+            ->take(4);
 
-        $products = collect()
-            ->merge($beverages)
-            ->merge($roasteries)
-            ->merge($beans)
+        // Grouped by categories
+        $coffeeshopUmkms = \App\Models\Umkm::with(['category', 'reviews'])
+            ->where('status', 'approved')
+            ->whereHas('category', function($q) { $q->where('name', 'Coffee Shop'); })
+            ->get();
+
+        $roasteryUmkms = \App\Models\Umkm::with(['category', 'reviews'])
+            ->where('status', 'approved')
+            ->whereHas('category', function($q) { $q->where('name', 'Roastery'); })
+            ->get();
+
+        $supplierUmkms = \App\Models\Umkm::with(['category', 'reviews'])
+            ->where('status', 'approved')
+            ->whereHas('category', function($q) { $q->where('name', 'Toko Kopi'); })
+            ->get();
+
+        return view('umkm.index', compact('bestUmkms', 'coffeeshopUmkms', 'roasteryUmkms', 'supplierUmkms'));
+    }
+
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+
+        // Base queries
+        $beverageQuery = \App\Models\ProductBeverage::with(['umkm.category'])->where('status', 'approved');
+        $roasteryQuery = \App\Models\ProductRoastery::with(['umkm.category'])->where('status', 'approved');
+        $beanQuery = \App\Models\ProductBean::with(['umkm.category'])->where('status', 'approved');
+
+        if ($search) {
+            $searchCallback = function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('umkm', function ($q) use ($search) {
+                        $q->where('business_name', 'like', "%{$search}%")
+                          ->orWhereHas('category', function ($qc) use ($search) {
+                              $qc->where('name', 'like', "%{$search}%");
+                          });
+                    });
+            };
+
+            $beverageQuery->where(function($query) use ($search, $searchCallback) {
+                $searchCallback($query);
+                $query->orWhere('drink_type', 'like', "%{$search}%");
+            });
+
+            $roasteryQuery->where(function($query) use ($search, $searchCallback) {
+                $searchCallback($query);
+                $query->orWhere('variety', 'like', "%{$search}%")
+                      ->orWhere('process', 'like', "%{$search}%");
+            });
+
+            $beanQuery->where(function($query) use ($search, $searchCallback) {
+                $searchCallback($query);
+                $query->orWhere('variety', 'like', "%{$search}%")
+                      ->orWhere('process', 'like', "%{$search}%")
+                      ->orWhere('origin', 'like', "%{$search}%");
+            });
+        }
+
+        // Fetch all results for sections
+        $coffeeshopProducts = $beverageQuery->latest()->get();
+        $roasteryProducts = $roasteryQuery->latest()->get();
+        $supplierProducts = $beanQuery->latest()->get();
+
+        // Recommended: High view count from all types
+        $recommendedProducts = collect()
+            ->merge(\App\Models\ProductBeverage::where('status', 'approved')->orderBy('views', 'desc')->take(4)->get())
+            ->merge(\App\Models\ProductRoastery::where('status', 'approved')->orderBy('views', 'desc')->take(2)->get())
+            ->merge(\App\Models\ProductBean::where('status', 'approved')->orderBy('views', 'desc')->take(2)->get())
+            ->sortByDesc('views')
+            ->take(8);
+
+        // Latest: Just arrival
+        $latestProducts = collect()
+            ->merge(\App\Models\ProductBeverage::where('status', 'approved')->latest()->take(3)->get())
+            ->merge(\App\Models\ProductRoastery::where('status', 'approved')->latest()->take(3)->get())
+            ->merge(\App\Models\ProductBean::where('status', 'approved')->latest()->take(2)->get())
             ->sortByDesc('created_at')
             ->take(8);
-            
-        return view('katalog.index', compact('products'));
+
+        // For search results specifically
+        $searchResults = collect();
+        if ($search) {
+            $searchResults = collect()
+                ->merge($coffeeshopProducts)
+                ->merge($roasteryProducts)
+                ->merge($supplierProducts)
+                ->sortByDesc('created_at');
+        }
+
+        return view('katalog.index', compact(
+            'latestProducts', 
+            'recommendedProducts', 
+            'coffeeshopProducts', 
+            'roasteryProducts', 
+            'supplierProducts',
+            'searchResults',
+            'search'
+        ));
     }
 
     public function showUmkm($slug)

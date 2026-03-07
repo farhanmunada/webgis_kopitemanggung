@@ -20,6 +20,32 @@
                 </div>
             </header>
 
+            <!-- Status Banner -->
+            @if($umkm->status === 'pending')
+                <div class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-3xl p-6 flex items-center shadow-sm">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl mr-5 flex-shrink-0 animate-pulse">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-amber-900 leading-tight">Pendaftaran Sedang Ditinjau</h3>
+                        <p class="text-xs text-amber-700 font-medium mt-1">Tim Admin sedang memverifikasi data UMKM Anda. Anda akan menerima notifikasi segera setelah pendaftaran disetujui.</p>
+                    </div>
+                </div>
+            @elseif($umkm->status === 'rejected')
+                <div class="bg-red-50 border-2 border-red-100 rounded-3xl p-6 flex items-center shadow-sm">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-xl mr-5 flex-shrink-0">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-black text-red-900 leading-tight">Pendaftaran Ditolak</h3>
+                        <p class="text-xs text-red-700 font-medium mt-1 italic">"{{ $umkm->admin_note ?? 'Maaf, pendaftaran Anda belum sesuai dengan kriteria kami. Silakan perbarui data profil Anda.' }}"</p>
+                    </div>
+                    <a href="{{ route('entrepreneur.profile.settings') }}" class="ml-4 bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg shadow-red-200 hover:bg-red-700 transition">
+                        Perbaiki Profil
+                    </a>
+                </div>
+            @endif
+
             <!-- Statistics Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Stat Card 1: Total Products -->
@@ -186,3 +212,25 @@
         </main>
     </div>
 </x-app-layout>
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if(!session('umkm_welcome_notified'))
+        @php session(['umkm_welcome_notified' => true]); @endphp
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: '<span class="font-black text-2xl uppercase tracking-tight text-green-600">Selamat Berjualan!</span>',
+                    html: `<div class="font-medium text-gray-600 leading-relaxed mt-2 text-sm">UMKM Anda telah <b>Disetujui</b> oleh Admin. Sekarang Anda memiliki akses penuh untuk mengelola produk dan profil toko Anda.</div>`,
+                    confirmButtonText: 'Mulai Kelola Produk',
+                    confirmButtonColor: '#16a34a',
+                    customClass: {
+                        popup: 'rounded-[32px] p-8',
+                        confirmButton: 'rounded-2xl px-8 py-3 font-black uppercase text-xs tracking-widest'
+                    }
+                });
+            });
+        </script>
+    @endif
+@endpush

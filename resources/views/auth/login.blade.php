@@ -50,13 +50,8 @@
 
                 <!-- Password -->
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
+                    <div class="mb-1.5">
                         <x-input-label for="password" :value="__('Kata Sandi')" class="text-gray-700 font-bold" />
-                        @if (Route::has('password.request'))
-                            <a class="text-xs font-bold text-coffee-600 hover:text-coffee-800" href="{{ route('password.request') }}">
-                                Lupa Password?
-                            </a>
-                        @endif
                     </div>
                     <x-text-input id="password" class="block w-full border-gray-200 focus:border-coffee-500 focus:ring-coffee-500 rounded-xl h-12"
                                     type="password"

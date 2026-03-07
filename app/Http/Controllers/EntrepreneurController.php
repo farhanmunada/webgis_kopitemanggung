@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\VerificationDocument;
+use Illuminate\Support\Facades\DB;
+use App\Notifications\UMKMSubmissionReceived;
 
 class EntrepreneurController extends Controller
 {
@@ -249,7 +252,7 @@ class EntrepreneurController extends Controller
             if ($umkm->status === 'pending') {
                 return redirect()->route('dashboard')->with('message', 'Pendaftaran UMKM Anda sedang menunggu validasi admin.');
             }
-            if ($umkm->status === 'active') {
+            if ($umkm->status === 'approved') {
                 return redirect()->route('entrepreneur.dashboard');
             }
         }
@@ -275,27 +278,118 @@ class EntrepreneurController extends Controller
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'ktp_file' => 'required|file|mimes:pdf,jpg,png,jpeg|max:2048',
+            'nib_file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
         ]);
 
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('umkm', 'public');
+        DB::transaction(function() use ($request, $user) {
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('umkm', 'public');
+            }
+
+            $umkm = \App\Models\Umkm::create([
+                'user_id' => $user->id,
+                'category_id' => $request->category_id,
+                'business_name' => $request->business_name,
+                'slug' => \Illuminate\Support\Str::slug($request->business_name) . '-' . uniqid(),
+                'description' => $request->description,
+                'address' => $request->address,
+                'phone' => $request->phone,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'status' => 'pending',
+                'photo' => $photoPath,
+            ]);
+
+            // Handle KTP
+            if ($request->hasFile('ktp_file')) {
+                $ktpPath = $request->file('ktp_file')->store('verification_docs', 'public');
+                $umkm->verificationDocuments()->create([
+                    'type' => 'ktp',
+                    'file_path' => $ktpPath,
+                ]);
+            }
+
+            // Handle NIB
+            if ($request->hasFile('nib_file')) {
+                $nibPath = $request->file('nib_file')->store('verification_docs', 'public');
+                $umkm->verificationDocuments()->create([
+                    'type' => 'nib',
+                    'file_path' => $nibPath,
+                ]);
+            }
+        });
+
+        // Notify User about submission receipt
+        $user->notify(new UMKMSubmissionReceived($user->umkms()->first()));
+
+        return redirect('/')->with('show_umkm_status', true);
+    }
+
+    public function editProfile()
+    {
+        $user = auth()->user();
+        $umkm = $user->umkms()->first();
+
+        if (!$umkm) {
+            return redirect()->route('umkm.register');
         }
 
-        \App\Models\Umkm::create([
-            'user_id' => $user->id,
-            'category_id' => $request->category_id,
+        $categories = \App\Models\Category::all();
+        return view('entrepreneur.profile', compact('umkm', 'categories'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+        $umkm = $user->umkms()->first();
+
+        if (!$umkm) {
+            abort(404);
+        }
+
+        $request->validate([
+            'business_name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'required|string',
+            'address' => 'required|string',
+            'phone' => 'required|string|max:20',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            if ($umkm->photo) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($umkm->photo);
+            }
+            $umkm->photo = $request->file('photo')->store('umkm', 'public');
+        }
+
+        $umkm->update([
             'business_name' => $request->business_name,
-            'slug' => \Illuminate\Support\Str::slug($request->business_name) . '-' . uniqid(),
+            'category_id' => $request->category_id,
             'description' => $request->description,
             'address' => $request->address,
             'phone' => $request->phone,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'status' => 'pending',
-            'photo' => $photoPath,
         ]);
+        
+        $umkm->save(); // Photo update if any
 
-        return redirect()->route('dashboard')->with('success', 'Pendaftaran UMKM berhasil! Silakan tunggu validasi dari Admin sebelum Anda dapat memposting produk.');
+        return redirect()->back()->with('success', 'Profil toko berhasil diperbarui.');
+    }
+
+    public function notifications()
+    {
+        $user = auth()->user();
+        $notifications = $user->notifications()->latest()->paginate(15);
+        
+        // Mark as read after viewing
+        $user->unreadNotifications->markAsRead();
+        
+        return view('entrepreneur.notifications', compact('notifications'));
     }
 }

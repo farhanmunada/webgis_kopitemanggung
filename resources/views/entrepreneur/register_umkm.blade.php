@@ -63,9 +63,31 @@
                             </div>
                         </div>
 
+                        <!-- Documents Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                            <div class="space-y-1">
+                                <x-input-label for="ktp_file" :value="__('Scan KTP (Owner)')" class="text-[10px] font-black text-gray-500 uppercase tracking-widest" />
+                                <input id="ktp_file" name="ktp_file" type="file" class="block w-full text-[10px] text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-black file:bg-white file:text-gray-700 shadow-sm" required />
+                            </div>
+                            <div class="space-y-1">
+                                <x-input-label for="nib_file" :value="__('Scan NIB (Opsi)')" class="text-[10px] font-black text-gray-500 uppercase tracking-widest" />
+                                <input id="nib_file" name="nib_file" type="file" class="block w-full text-[10px] text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-black file:bg-white file:text-gray-700 shadow-sm" />
+                            </div>
+                            <p class="col-span-full text-[9px] text-gray-400 font-medium italic"><i class="fas fa-info-circle mr-1"></i> Data dokumen ini hanya digunakan untuk validasi kredibilitas usaha oleh Admin.</p>
+                        </div>
+
                         <div class="space-y-1">
                             <x-input-label for="address" :value="__('Alamat Lengkap')" class="text-xs font-bold text-gray-600" />
                             <x-text-input id="address" name="address" type="text" class="block w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-10 text-sm" :value="old('address')" required placeholder="Jl. Raya Temanggung No. XX..." />
+                        </div>
+
+                        <div class="space-y-2">
+                            <x-input-label :value="__('Pilih Lokasi di Peta')" class="text-xs font-bold text-gray-600" />
+                            <div id="map" class="h-64 w-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 overflow-hidden relative z-0"></div>
+                            <p class="text-[10px] text-orange-600 font-bold italic"><i class="fas fa-info-circle mr-1"></i> Klik pada peta untuk menentukan titik koordinat usaha Anda.</p>
+                            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+                            @error('latitude') <p class="text-[10px] text-red-500 font-bold mt-1">Silakan tentukan lokasi pada peta.</p> @enderror
                         </div>
                     </div>
 
@@ -79,5 +101,48 @@
                         </p>
                     </div>
                 </form>
+            </div>
+        </div>
     </div>
+
+    <!-- Leaflet Assets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Default center: Temanggung
+            const map = L.map('map').setView([-7.3275, 110.1744], 12);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            let marker;
+            
+            // Handle existing old values
+            const oldLat = document.getElementById('latitude').value;
+            const oldLng = document.getElementById('longitude').value;
+            
+            if (oldLat && oldLng) {
+                const pos = [oldLat, oldLng];
+                marker = L.marker(pos).addTo(map);
+                map.setView(pos, 15);
+            }
+
+            map.on('click', function(e) {
+                const lat = e.latlng.lat.toFixed(8);
+                const lng = e.latlng.lng.toFixed(8);
+                
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+                
+                if (marker) {
+                    marker.setLatLng(e.latlng);
+                } else {
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+            });
+        });
+    </script>
 </x-app-layout>

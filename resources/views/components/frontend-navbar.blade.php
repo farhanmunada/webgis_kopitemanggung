@@ -11,8 +11,10 @@
     </div>
     <div class="flex items-center space-x-6">
         <div class="relative hidden lg:block">
-            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            <input type="text" placeholder="Cari varietas, proses..." class="pl-10 pr-4 py-2 border-none bg-gray-100 rounded-full text-sm font-medium w-64 focus:ring-2 focus:ring-primary focus:bg-white transition">
+            <form action="{{ route('katalog.index') }}" method="GET">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari varietas, toko, produk..." class="pl-10 pr-4 py-2 border-none bg-gray-100 rounded-full text-sm font-medium w-64 focus:ring-2 focus:ring-primary focus:bg-white transition">
+            </form>
         </div>
         
         @if(auth()->check())

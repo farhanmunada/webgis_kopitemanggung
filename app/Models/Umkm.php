@@ -19,7 +19,7 @@ class Umkm extends Model
         parent::boot();
         static::creating(function ($umkm) {
             if (empty($umkm->slug)) {
-                $umkm->slug = \Illuminate\Support\Str::slug($umkm->name) . '-' . uniqid();
+                $umkm->slug = \Illuminate\Support\Str::slug($umkm->business_name) . '-' . uniqid();
             }
         });
     }

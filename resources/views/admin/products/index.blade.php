@@ -59,20 +59,13 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     @if($product['status'] == 'pending')
-                                        <div class="flex justify-end space-x-2">
-                                            <form action="{{ route('admin.product.approve', ['type' => $product['type'], 'id' => $product['id']]) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" title="Approve" class="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600 text-white hover:bg-green-700 transition shadow-sm"><i class="fas fa-check"></i></button>
-                                            </form>
-                                            <form action="{{ route('admin.product.reject', ['type' => $product['type'], 'id' => $product['id']]) }}" method="POST" class="inline" onsubmit="let r = prompt('Alasan penolakan?'); if(r) { this.rejected_reason.value = r; return true; } return false;">
-                                                @csrf
-                                                <input type="hidden" name="rejected_reason">
-                                                <button type="submit" title="Reject" class="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-700 transition shadow-sm"><i class="fas fa-times"></i></button>
-                                            </form>
-                                        </div>
+                                        <a href="{{ route('admin.product.show', ['type' => $product['type'], 'id' => $product['id']]) }}" class="inline-flex items-center px-4 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-coffee-900 transition shadow-lg shadow-orange-100">
+                                            Review Product <i class="fas fa-search ml-2 text-[10px]"></i>
+                                        </a>
                                     @else
-                                        <div class="text-gray-400 italic text-[10px] font-medium uppercase tracking-tighter">
-                                             Verified At {{ \Carbon\Carbon::parse($product['updated_at'])->format('d M Y') }}
+                                        <div class="flex flex-col items-end">
+                                            <a href="{{ route('admin.product.show', ['type' => $product['type'], 'id' => $product['id']]) }}" class="text-[10px] font-black text-gray-400 hover:text-primary transition uppercase tracking-widest">Detail Specs</a>
+                                            <span class="text-[9px] text-gray-300 italic">Verified {{ \Carbon\Carbon::parse($product['updated_at'])->format('d M Y') }}</span>
                                         </div>
                                     @endif
                                 </td>

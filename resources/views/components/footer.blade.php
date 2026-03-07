@@ -12,18 +12,18 @@
             <div>
                 <h4 class="font-bold text-gray-900 mb-4">Navigasi</h4>
                 <ul class="space-y-2 text-sm text-gray-500 font-medium">
-                    <li><a href="/katalog" class="hover:text-primary">Katalog Produk</a></li>
-                    <li><a href="/map" class="hover:text-primary">Peta Sebaran</a></li>
-                    <li><a href="#" class="hover:text-primary">Profil Petani</a></li>
+                    <li><a href="{{ route('katalog.index') }}" class="hover:text-primary">Katalog Produk</a></li>
+                    <li><a href="{{ route('map.index') }}" class="hover:text-primary">Peta Sebaran</a></li>
+                    <li><a href="{{ route('umkm.index') }}" class="hover:text-primary">Profil UMKM</a></li>
                     <li><a href="{{ route('register') }}" class="hover:text-primary">Daftar Jadi Penjual</a></li>
                 </ul>
             </div>
             <div>
                 <h4 class="font-bold text-gray-900 mb-4">Dukungan</h4>
                 <ul class="space-y-2 text-sm text-gray-500 font-medium">
-                    <li><a href="#" class="hover:text-primary">Pusat Bantuan</a></li>
-                    <li><a href="#" class="hover:text-primary">Kebijakan Privasi</a></li>
-                    <li><a href="#" class="hover:text-primary">Syarat Ketentuan</a></li>
+                    <li><a href="{{ route('support.help') }}" class="hover:text-primary">Pusat Bantuan</a></li>
+                    <li><a href="{{ route('support.privacy') }}" class="hover:text-primary">Kebijakan Privasi</a></li>
+                    <li><a href="{{ route('support.terms') }}" class="hover:text-primary">Syarat Ketentuan</a></li>
                 </ul>
             </div>
             <div>
