@@ -44,6 +44,9 @@ async function initMap() {
     // Fetch UMKM Data
     await loadUMKMMarkers();
     
+    // Fetch and Build District Mapping
+    await loadDistricts();
+
     // Setup Filter Buttons
     document.querySelectorAll('.filter-btn').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -63,10 +66,117 @@ async function initMap() {
             
             // Update clusterer
             const visibleMarkers = markers.filter(m => m.getVisible());
-            markerCluster.clearMarkers();
-            markerCluster.addMarkers(visibleMarkers);
+            if (markerCluster) {
+                markerCluster.clearMarkers();
+                markerCluster.addMarkers(visibleMarkers);
+            }
         });
     });
+}
+
+// Add global tooltip element
+const tooltip = document.createElement("div");
+tooltip.style.position = "absolute";
+tooltip.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+tooltip.style.padding = "12px 16px";
+tooltip.style.borderRadius = "15px";
+tooltip.style.boxShadow = "0 10px 25px rgba(0,0,0,0.15)";
+tooltip.style.pointerEvents = "none";
+tooltip.style.display = "none";
+tooltip.style.zIndex = "1000";
+tooltip.style.border = "1px solid rgba(0,0,0,0.05)";
+tooltip.style.backdropFilter = "blur(10px)";
+tooltip.style.transition = "opacity 0.2s, transform 0.2s";
+tooltip.className = "district-tooltip";
+document.body.appendChild(tooltip);
+
+async function loadDistricts() {
+    try {
+        // Load Harvest Data
+        const harvestResponse = await fetch('/data/harvest_data.json');
+        const harvestData = await harvestResponse.json();
+
+        // Load GeoJSON
+        map.data.loadGeoJson('/geojson/temanggungPride.json');
+
+        // Style the polygons
+        map.data.setStyle((feature) => {
+            return {
+                fillColor: "#4a90e2",
+                fillOpacity: 0.1,
+                strokeColor: "#2c3e50",
+                strokeWeight: 1,
+                visible: true
+            };
+        });
+
+        // Hover events
+        map.data.addListener("mouseover", (event) => {
+            const districtName = event.feature.getProperty("NAMOBJ") || event.feature.getProperty("WADMKC");
+            const data = harvestData[districtName] || { arabika: "0", robusta: "0" };
+
+            // Helper to handle comma-based numbers and calculate total
+            const parseVal = (v) => parseFloat(v.toString().replace(',', '.')) || 0;
+            const arabikaVal = parseVal(data.arabika);
+            const robustaVal = parseVal(data.robusta);
+            const totalVal = (arabikaVal + robustaVal).toLocaleString('id-ID', { minimumFractionDigits: 2 });
+
+            map.data.overrideStyle(event.feature, {
+                fillOpacity: 0.4,
+                fillColor: "#f39c12",
+                strokeWeight: 2,
+                strokeColor: "#d35400"
+            });
+
+            tooltip.style.display = "block";
+            tooltip.style.opacity = "1";
+            tooltip.style.transform = "translateY(0)";
+            tooltip.innerHTML = `
+                <div style="font-family: 'Figtree', sans-serif; min-width: 180px;">
+                    <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #95a5a6; font-weight: 800; letter-spacing: 1px;">Kecamatan</p>
+                    <h4 style="margin: 2px 0 8px 0; font-size: 16px; font-weight: 900; color: #2c3e50;">${districtName}</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 8px; margin-bottom: 8px;">
+                        <div>
+                            <p style="margin: 0; font-size: 9px; color: #7f8c8d; font-weight: 700;">ARABIKA</p>
+                            <p style="margin: 0; font-size: 12px; font-weight: 800; color: #2980b9;">${data.arabika} <span style="font-size: 8px;">Ton</span></p>
+                        </div>
+                        <div>
+                            <p style="margin: 0; font-size: 9px; color: #7f8c8d; font-weight: 700;">ROBUSTA</p>
+                            <p style="margin: 0; font-size: 12px; font-weight: 800; color: #8e44ad;">${data.robusta} <span style="font-size: 8px;">Ton</span></p>
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 6px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 10px; font-weight: 800; color: #2c3e50;">TOTAL PANEN</span>
+                        <span style="font-size: 13px; font-weight: 900; color: #27ae60;">${totalVal} <span style="font-size: 9px;">Ton</span></span>
+                    </div>
+                </div>
+            `;
+        });
+
+        map.data.addListener("mousemove", (event) => {
+            tooltip.style.left = (event.domEvent.pageX + 15) + "px";
+            tooltip.style.top = (event.domEvent.pageY + 15) + "px";
+        });
+
+        map.data.addListener("mouseout", (event) => {
+            map.data.revertStyle();
+            tooltip.style.display = "none";
+            tooltip.style.opacity = "0";
+            tooltip.style.transform = "translateY(10px)";
+        });
+
+        // Click to zoom
+        map.data.addListener("click", (event) => {
+            const bounds = new google.maps.LatLngBounds();
+            event.feature.getGeometry().forEachLatLng((latlng) => {
+                bounds.extend(latlng);
+            });
+            map.fitBounds(bounds);
+        });
+
+    } catch (error) {
+        console.error("Error loading district data:", error);
+    }
 }
 
 async function loadUMKMMarkers() {

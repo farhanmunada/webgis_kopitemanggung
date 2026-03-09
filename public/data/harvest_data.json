@@ -1,0 +1,82 @@
+{
+  "Bansari": {
+    "arabika": "1,66",
+    "robusta": "91,98"
+  },
+  "Bejen": {
+    "arabika": "1,26",
+    "robusta": "943,5"
+  },
+  "Bulu": {
+    "arabika": "4,37",
+    "robusta": "11,1"
+  },
+  "Candiroto": {
+    "arabika": "29,11",
+    "robusta": "1136,9"
+  },
+  "Gemawang": {
+    "arabika": "0",
+    "robusta": "1563,2"
+  },
+  "Jumo": {
+    "arabika": "0",
+    "robusta": "670,5"
+  },
+  "Kaloran": {
+    "arabika": "9",
+    "robusta": "769,37"
+  },
+  "Kandangan": {
+    "arabika": "0",
+    "robusta": "1499,85"
+  },
+  "Kedu": {
+    "arabika": "0",
+    "robusta": "57"
+  },
+  "Kledung": {
+    "arabika": "167,5",
+    "robusta": "0"
+  },
+  "Kranggan": {
+    "arabika": "0",
+    "robusta": "236,07"
+  },
+  "Ngadirejo": {
+    "arabika": "64,24",
+    "robusta": "2,61"
+  },
+  "Parakan": {
+    "arabika": "26,98",
+    "robusta": "5,82"
+  },
+  "Pringsurat": {
+    "arabika": "0",
+    "robusta": "598"
+  },
+  "Selopampang": {
+    "arabika": "10,07",
+    "robusta": "10,79"
+  },
+  "Temanggung": {
+    "arabika": "0",
+    "robusta": "4,13"
+  },
+  "Tembarak": {
+    "arabika": "13,2",
+    "robusta": "5,76"
+  },
+  "Tlogomulyo": {
+    "arabika": "12,39",
+    "robusta": "3,43"
+  },
+  "Tretep": {
+    "arabika": "40,5",
+    "robusta": "353,6"
+  },
+  "Wonoboyo": {
+    "arabika": "148,76",
+    "robusta": "502,4"
+  }
+}
