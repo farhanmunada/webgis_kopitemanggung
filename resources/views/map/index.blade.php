@@ -11,6 +11,47 @@
         .filter-btn.opacity-50 {
             filter: grayscale(1);
         }
+        /* Custom InfoWindow Styling */
+        .gm-style-iw {
+            padding: 0 !important;
+            border-radius: 25px !important;
+            max-width: 280px !important;
+        }
+        .gm-style-iw-d {
+            overflow: hidden !important;
+            padding: 0 !important;
+            max-height: none !important;
+        }
+        .gm-style-iw-c {
+            padding: 0 !important;
+            border-radius: 25px !important;
+        }
+        .gm-ui-hover-effect {
+            top: 10px !important;
+            right: 10px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            z-index: 100 !important;
+        }
+        /* Marker Label Stylings */
+        .marker-label {
+            color: #000 !important;
+            font-family: "Figtree", sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0px 2px 4px rgba(0,0,0,0.3) !important;
+            background: rgba(255, 255, 255, 0.7) !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            white-space: nowrap !important;
+        }
     </style>
 </head>
 <body class="bg-[#faf9f8] font-sans antialiased text-gray-800 h-screen flex flex-col overflow-hidden">
@@ -136,7 +177,7 @@
     </script>
     <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     <script src="{{ asset('js/maps.js') }}" defer></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&libraries=places&callback=initMap" defer></script>
     @endpush
 
     @stack('scripts')
